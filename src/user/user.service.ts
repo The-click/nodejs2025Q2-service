@@ -65,6 +65,7 @@ export class UserService {
 
     findedUser.password = updateUserDto.newPassword;
     findedUser.version += 1;
+    findedUser.updatedAt = +new Date();
 
     return findedUser;
   }

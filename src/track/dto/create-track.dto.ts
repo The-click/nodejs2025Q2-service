@@ -1,22 +1,25 @@
 import {
   IsNotEmpty,
+  IsNumber,
   IsPositive,
   IsString,
-  IsUUID,
-  ValidateIf,
+  Min,
 } from 'class-validator';
 import { UUID } from 'crypto';
 import { IsNullOrUUID } from 'src/decorators/is-uuid-or-null';
 
-export class UpdateAlbumDto {
+export class CreateTrackDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @IsPositive()
-  @IsNotEmpty()
-  year: number;
+  @IsNullOrUUID()
+  artistId: UUID | null; // refers to Artist
 
   @IsNullOrUUID()
-  artistId: UUID | null;
+  albumId: UUID | null; // refers to Album
+
+  @IsNumber()
+  @Min(0)
+  duration: number; // integer number
 }
