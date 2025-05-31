@@ -1,5 +1,12 @@
-import { IsNotEmpty, IsPositive, IsString, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsPositive,
+  IsString,
+  IsUUID,
+  ValidateIf,
+} from 'class-validator';
 import { UUID } from 'crypto';
+import { IsNullOrUUID } from 'src/decorators/is-uuid-or-null';
 
 export class UpdateAlbumDto {
   @IsString()
@@ -10,7 +17,6 @@ export class UpdateAlbumDto {
   @IsNotEmpty()
   year: number;
 
-  @IsUUID()
-  @IsNotEmpty()
+  @IsNullOrUUID()
   artistId: UUID;
 }
