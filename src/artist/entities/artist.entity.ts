@@ -1,6 +1,7 @@
 import { UUID } from 'crypto';
+import { IArtist } from 'src/shared/types/entity';
 
-export class ArtistEntity {
+export class ArtistEntity implements IArtist {
   id: UUID;
   name: string;
   grammy: boolean;

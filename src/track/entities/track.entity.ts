@@ -1,6 +1,7 @@
 import { UUID } from 'crypto';
+import { ITrack } from 'src/shared/types/entity';
 
-export class TrackEntity {
+export class TrackEntity implements ITrack {
   id: UUID; // uuid v4
   name: string;
   artistId: UUID | null; // refers to Artist

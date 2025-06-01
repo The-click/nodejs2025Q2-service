@@ -1,7 +1,8 @@
 import { Exclude } from 'class-transformer';
 import { UUID } from 'crypto';
+import { IUser } from 'src/shared/types/entity';
 
-export class UserEntity {
+export class UserEntity implements IUser {
   id: UUID;
   login: string;
   version: number;
