@@ -1,10 +1,4 @@
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsPositive,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 import { UUID } from 'crypto';
 import { IsNullOrUUID } from 'src/decorators/is-uuid-or-null';
 

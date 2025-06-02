@@ -1,4 +1,3 @@
-import { UUID } from 'crypto';
 import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
@@ -11,7 +10,7 @@ import {
 // Валидатор
 @ValidatorConstraint({ name: 'isNullOrUUID', async: false })
 export class IsNullOrUUIDConstraint implements ValidatorConstraintInterface {
-  validate(value: any, args: ValidationArguments) {
+  validate(value: any) {
     return value === null || isUUID(value); // true = валидно
   }
 
@@ -22,7 +21,7 @@ export class IsNullOrUUIDConstraint implements ValidatorConstraintInterface {
 
 // Декоратор
 export function IsNullOrUUID(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: any, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,

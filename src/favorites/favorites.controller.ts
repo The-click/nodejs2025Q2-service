@@ -2,14 +2,12 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Param,
   Delete,
   ParseUUIDPipe,
   HttpCode,
 } from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
-import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UUID } from 'crypto';
 
 @Controller('favs')
@@ -22,10 +20,7 @@ export class FavoritesController {
   }
 
   @Post('track/:id')
-  createTrack(
-    @Param('id', new ParseUUIDPipe()) id: UUID,
-    @Body() createFavoriteDto: CreateFavoriteDto,
-  ) {
+  createTrack(@Param('id', new ParseUUIDPipe()) id: UUID) {
     return this.favoritesService.addTrack(id);
   }
 
@@ -36,10 +31,7 @@ export class FavoritesController {
   }
 
   @Post('album/:id')
-  createAlbum(
-    @Param('id', new ParseUUIDPipe()) id: UUID,
-    @Body() createFavoriteDto: CreateFavoriteDto,
-  ) {
+  createAlbum(@Param('id', new ParseUUIDPipe()) id: UUID) {
     return this.favoritesService.addAlbum(id);
   }
 
@@ -50,10 +42,7 @@ export class FavoritesController {
   }
 
   @Post('artist/:id')
-  createArtist(
-    @Param('id', new ParseUUIDPipe()) id: UUID,
-    @Body() createFavoriteDto: CreateFavoriteDto,
-  ) {
+  createArtist(@Param('id', new ParseUUIDPipe()) id: UUID) {
     return this.favoritesService.addArtist(id);
   }
 
