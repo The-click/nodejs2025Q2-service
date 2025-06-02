@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -13,8 +15,11 @@ import { IAlbum, IArtist, ITrack } from 'src/shared/types/entity';
 @Injectable()
 export class FavoritesService {
   constructor(
+    @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
+    @Inject(forwardRef(() => AlbumService))
     private readonly albumService: AlbumService,
+    @Inject(forwardRef(() => ArtistService))
     private readonly artistService: ArtistService,
   ) {}
 
@@ -141,5 +146,36 @@ export class FavoritesService {
       ),
       1,
     );
+  }
+
+  cascadeDelete(id: UUID, entity: 'artist' | 'album' | 'track') {
+    switch (entity) {
+      case 'album': {
+        this.favorites.albums.splice(
+          this.favorites.albums.findIndex((albums) => albums.id === id),
+          1,
+        );
+        break;
+      }
+
+      case 'artist': {
+        this.favorites.artists.splice(
+          this.favorites.artists.findIndex((artist) => artist.id === id),
+          1,
+        );
+        break;
+      }
+      case 'track': {
+        this.favorites.tracks.splice(
+          this.favorites.tracks.findIndex((track) => track.id === id),
+          1,
+        );
+        break;
+      }
+
+      default: {
+        console.log(`Unexpected entity ${entity}`);
+      }
+    }
   }
 }

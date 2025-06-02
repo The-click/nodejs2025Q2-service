@@ -1,11 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackEntity } from './entities/track.entity';
 import { UUID } from 'crypto';
+import { AlbumService } from 'src/album/album.service';
+import { ArtistService } from 'src/artist/artist.service';
+import { FavoritesService } from 'src/favorites/favorites.service';
 
 @Injectable()
 export class TrackService {
+  constructor(
+    @Inject(forwardRef(() => FavoritesService))
+    private readonly favoriteService: FavoritesService,
+    @Inject(forwardRef(() => AlbumService))
+    private readonly albumService: AlbumService,
+    @Inject(forwardRef(() => ArtistService))
+    private readonly artistService: ArtistService,
+  ) {}
+
   private readonly tracks: TrackEntity[] = [
     new TrackEntity({
       id: crypto.randomUUID(),
@@ -54,12 +71,36 @@ export class TrackService {
     return findedTrack;
   }
 
+  setNullArtist(artistId: UUID) {
+    this.tracks.forEach((track) => {
+      if (track.artistId !== artistId) {
+        return;
+      }
+
+      track.artistId = null;
+    });
+  }
+
+  setNullAlbum(albumId: UUID) {
+    this.tracks.forEach((track) => {
+      if (track.albumId !== albumId) {
+        return;
+      }
+
+      track.albumId = null;
+    });
+  }
+
   remove(id: UUID) {
     const findedTrack = this.findOne(id);
 
-    return this.tracks.splice(
+    const deletedElement = this.tracks.splice(
       this.tracks.findIndex((album) => album.id === findedTrack.id),
       1,
     );
+
+    this.favoriteService.cascadeDelete(id, 'track');
+
+    return deletedElement;
   }
 }

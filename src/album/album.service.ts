@@ -1,11 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { AlbumEntity } from './entities/album.entity';
 import { UUID } from 'crypto';
+import { FavoritesService } from 'src/favorites/favorites.service';
+import { ArtistService } from 'src/artist/artist.service';
+import { TrackService } from 'src/track/track.service';
 
 @Injectable()
 export class AlbumService {
+  constructor(
+    @Inject(forwardRef(() => FavoritesService))
+    private readonly favoriteService: FavoritesService,
+    @Inject(forwardRef(() => ArtistService))
+    private readonly artistService: ArtistService,
+    @Inject(forwardRef(() => TrackService))
+    private readonly trackService: TrackService,
+  ) {}
+
   private readonly albums: AlbumEntity[] = [
     new AlbumEntity({
       id: crypto.randomUUID(),
@@ -53,12 +70,27 @@ export class AlbumService {
     return findeAlbum;
   }
 
+  setNullArtist(artistId: UUID) {
+    this.albums.forEach((album) => {
+      if (album.artistId !== artistId) {
+        return;
+      }
+
+      album.artistId = null;
+    });
+  }
+
   remove(id: UUID) {
     const findeAlbum = this.findOne(id);
 
-    return this.albums.splice(
+    const deletedElement = this.albums.splice(
       this.albums.findIndex((album) => album.id === findeAlbum.id),
       1,
     );
+
+    this.favoriteService.cascadeDelete(id, 'album');
+    this.trackService.setNullAlbum(id);
+
+    return deletedElement;
   }
 }
