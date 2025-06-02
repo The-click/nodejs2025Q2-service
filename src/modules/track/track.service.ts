@@ -8,9 +8,9 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackEntity } from './entities/track.entity';
 import { UUID } from 'crypto';
-import { AlbumService } from 'src/album/album.service';
-import { ArtistService } from 'src/artist/artist.service';
-import { FavoritesService } from 'src/favorites/favorites.service';
+import { AlbumService } from 'src/modules/album/album.service';
+import { ArtistService } from 'src/modules/artist/artist.service';
+import { FavoritesService } from 'src/modules/favorites/favorites.service';
 
 @Injectable()
 export class TrackService {

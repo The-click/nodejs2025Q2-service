@@ -5,10 +5,10 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { TrackService } from 'src/track/track.service';
-import { AlbumService } from 'src/album/album.service';
+import { TrackService } from 'src/modules/track/track.service';
+import { AlbumService } from 'src/modules/album/album.service';
 import { FavoriteEntity } from './entities/favorite.entity';
-import { ArtistService } from 'src/artist/artist.service';
+import { ArtistService } from 'src/modules/artist/artist.service';
 import { UUID } from 'crypto';
 import { IAlbum, IArtist, ITrack } from 'src/shared/types/entity';
 

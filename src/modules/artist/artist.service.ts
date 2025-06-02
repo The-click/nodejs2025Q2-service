@@ -8,9 +8,9 @@ import { ArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
 import { UUID } from 'crypto';
-import { FavoritesService } from 'src/favorites/favorites.service';
-import { AlbumService } from 'src/album/album.service';
-import { TrackService } from 'src/track/track.service';
+import { FavoritesService } from 'src/modules/favorites/favorites.service';
+import { AlbumService } from 'src/modules/album/album.service';
+import { TrackService } from 'src/modules/track/track.service';
 
 @Injectable()
 export class ArtistService {
