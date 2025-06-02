@@ -22,7 +22,6 @@ export class UserService {
   ];
 
   create(createUserDto: CreateUserDto) {
-    console.log({ createUserDto });
     const currentTimeStamp = +new Date();
     const newUser: UserEntity = new UserEntity({
       ...createUserDto,
