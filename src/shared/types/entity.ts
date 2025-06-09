@@ -1,14 +1,14 @@
 import { UUID } from 'crypto';
 
 export interface IAlbum {
-  id: UUID; // uuid v4
+  id: string; // uuid v4
   name: string;
   year: number;
-  artistId: UUID | null; // refers to Artist
+  artistId: string | null; // refers to Artist
 }
 
 export class IArtist {
-  id: UUID;
+  id: string;
   name: string;
   grammy: boolean;
 }
@@ -22,7 +22,7 @@ export class ITrack {
 }
 
 export class IUser {
-  id: UUID;
+  id: string;
   login: string;
   version: number;
   createdAt: number;

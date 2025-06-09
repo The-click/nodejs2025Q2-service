@@ -11,10 +11,12 @@ import { UUID } from 'crypto';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { ArtistService } from 'src/modules/artist/artist.service';
 import { TrackService } from 'src/modules/track/track.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AlbumService {
   constructor(
+    private prisma: PrismaService,
     @Inject(forwardRef(() => FavoritesService))
     private readonly favoriteService: FavoritesService,
     @Inject(forwardRef(() => ArtistService))
@@ -32,23 +34,16 @@ export class AlbumService {
     }),
   ];
 
-  create(createAlbumDto: CreateAlbumDto) {
-    const newAlbum = new AlbumEntity({
-      ...createAlbumDto,
-      id: crypto.randomUUID(),
-    });
-
-    this.albums.push(newAlbum);
-
-    return newAlbum;
+  async create(createAlbumDto: CreateAlbumDto) {
+    return this.prisma.album.create({ data: createAlbumDto });
   }
 
   findAll() {
-    return this.albums;
+    return this.prisma.album.findMany();
   }
 
-  findOne(id: UUID) {
-    const findedAlbum = this.albums.find((album) => album.id === id);
+  async findOne(id: UUID) {
+    const findedAlbum = await this.prisma.album.findUnique({ where: { id } });
 
     if (!findedAlbum) {
       throw new NotFoundException('Album not found', {
@@ -60,37 +55,39 @@ export class AlbumService {
     return findedAlbum;
   }
 
-  update(id: UUID, updateAlbumDto: UpdateAlbumDto) {
-    const findeAlbum = this.findOne(id);
+  async update(id: UUID, updateAlbumDto: UpdateAlbumDto) {
+    const findedAlbum = await this.prisma.album.findUnique({ where: { id } });
 
-    Object.keys(updateAlbumDto).forEach(
-      (keyAlbum) => (findeAlbum[keyAlbum] = updateAlbumDto[keyAlbum]),
-    );
+    if (!findedAlbum) {
+      throw new NotFoundException('Album not found', {
+        cause: new Error(),
+        description: 'Album not found',
+      });
+    }
 
-    return findeAlbum;
+    return this.prisma.album.update({ where: { id }, data: updateAlbumDto });
   }
 
-  setNullArtist(artistId: UUID) {
-    this.albums.forEach((album) => {
-      if (album.artistId !== artistId) {
-        return;
-      }
-
-      album.artistId = null;
+  async setNullArtist(artistId: string) {
+    await this.prisma.album.updateMany({
+      where: { artistId: { equals: artistId } },
+      data: { artistId: null },
     });
   }
 
-  remove(id: UUID) {
-    const findeAlbum = this.findOne(id);
+  async remove(id: UUID) {
+    const findedAlbum = await this.prisma.album.findUnique({ where: { id } });
 
-    const deletedElement = this.albums.splice(
-      this.albums.findIndex((album) => album.id === findeAlbum.id),
-      1,
-    );
+    if (!findedAlbum) {
+      throw new NotFoundException('Album not found', {
+        cause: new Error(),
+        description: 'Album not found',
+      });
+    }
 
     this.favoriteService.cascadeDelete(id, 'album');
     this.trackService.setNullAlbum(id);
 
-    return deletedElement;
+    return this.prisma.album.delete({ where: { id } });
   }
 }

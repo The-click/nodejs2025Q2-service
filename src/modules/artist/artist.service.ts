@@ -11,10 +11,12 @@ import { UUID } from 'crypto';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { AlbumService } from 'src/modules/album/album.service';
 import { TrackService } from 'src/modules/track/track.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ArtistService {
   constructor(
+    private prisma: PrismaService,
     @Inject(forwardRef(() => FavoritesService))
     private readonly favoriteService: FavoritesService,
     @Inject(forwardRef(() => AlbumService))
@@ -31,23 +33,16 @@ export class ArtistService {
     }),
   ];
 
-  create(ArtistDto: ArtistDto) {
-    const newArtist = new ArtistEntity({
-      ...ArtistDto,
-      id: crypto.randomUUID(),
-    });
-
-    this.artists.push(newArtist);
-
-    return newArtist;
+  async create(ArtistDto: ArtistDto) {
+    return this.prisma.artist.create({ data: ArtistDto });
   }
 
   findAll() {
-    return this.artists;
+    return this.prisma.artist.findMany();
   }
 
-  findOne(id: UUID) {
-    const findedArtist = this.artists.find((artist) => artist.id === id);
+  async findOne(id: UUID) {
+    const findedArtist = await this.prisma.artist.findUnique({ where: { id } });
 
     if (!findedArtist) {
       throw new NotFoundException('Artist not found', {
@@ -59,27 +54,36 @@ export class ArtistService {
     return findedArtist;
   }
 
-  update(id: UUID, updateArtistDto: UpdateArtistDto) {
-    const findeArtist = this.findOne(id);
+  async update(id: UUID, updateArtistDto: UpdateArtistDto) {
+    const findedArtist = await this.prisma.artist.findUnique({ where: { id } });
 
-    findeArtist.grammy = updateArtistDto.grammy;
-    findeArtist.name = updateArtistDto.name;
+    if (!findedArtist) {
+      throw new NotFoundException('Artist not found', {
+        cause: new Error(),
+        description: 'Artist not found',
+      });
+    }
 
-    return findeArtist;
+    return this.prisma.artist.update({
+      where: { id },
+      data: { ...updateArtistDto },
+    });
   }
 
-  remove(id: UUID) {
-    const findeArtist = this.findOne(id);
+  async remove(id: UUID) {
+    const findedArtist = await this.prisma.artist.findUnique({ where: { id } });
 
-    const deletedElement = this.artists.splice(
-      this.artists.findIndex((artist) => artist.id === findeArtist.id),
-      1,
-    );
-
-    this.albumService.setNullArtist(id);
+    if (!findedArtist) {
+      throw new NotFoundException('Artist not found', {
+        cause: new Error(),
+        description: 'Artist not found',
+      });
+    }
+    console.log('remove', id);
+    await this.albumService.setNullArtist(id);
     this.trackService.setNullArtist(id);
     this.favoriteService.cascadeDelete(id, 'artist');
 
-    return deletedElement;
+    return this.prisma.artist.delete({ where: { id } });
   }
 }

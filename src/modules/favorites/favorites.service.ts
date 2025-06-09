@@ -70,11 +70,11 @@ export class FavoritesService {
     );
   }
 
-  addAlbum(id: UUID) {
+  async addAlbum(id: UUID) {
     let findedAlbum: undefined | IAlbum;
 
     try {
-      findedAlbum = this.albumService.findOne(id);
+      findedAlbum = await this.albumService.findOne(id);
     } catch (error) {
       if (error.status === 404) {
         throw new UnprocessableEntityException('Something bad happened', {
@@ -107,11 +107,11 @@ export class FavoritesService {
     );
   }
 
-  addArtist(id: UUID) {
+  async addArtist(id: UUID) {
     let findedArtist: undefined | IArtist;
 
     try {
-      findedArtist = this.artistService.findOne(id);
+      findedArtist = await this.artistService.findOne(id);
     } catch (error) {
       if (error.status === 404) {
         throw new UnprocessableEntityException('Something bad happened', {
