@@ -11,7 +11,7 @@ export class CreateTrackDto {
   artistId: UUID | null; // refers to Artist
 
   @IsNullOrUUID()
-  albumId: UUID | null; // refers to Album
+  albumId: UUID | null; // refsers to Album
 
   @IsNumber()
   @Min(0)

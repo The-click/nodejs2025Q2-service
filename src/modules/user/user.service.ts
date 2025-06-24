@@ -13,20 +13,34 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    return this.prisma.user.create({
-      data: createUserDto,
+    const user = await this.prisma.user.create({
+      data: {
+        ...createUserDto,
+      },
       omit: {
         password: true,
       },
     });
+
+    return {
+      ...user,
+      updatedAt: +new Date(user.updatedAt),
+      createdAt: +new Date(user.createdAt),
+    };
   }
 
-  findAll() {
-    return this.prisma.user.findMany({
+  async findAll() {
+    const users = await this.prisma.user.findMany({
       omit: {
         password: true,
       },
     });
+
+    return users.map((user) => ({
+      ...user,
+      updatedAt: +new Date(user.updatedAt),
+      createdAt: +new Date(user.createdAt),
+    }));
   }
 
   async findOne(id: UUID) {
@@ -46,7 +60,11 @@ export class UserService {
       });
     }
 
-    return findedUser;
+    return {
+      ...findedUser,
+      updatedAt: +new Date(findedUser.updatedAt),
+      createdAt: +new Date(findedUser.createdAt),
+    };
   }
 
   async update(id: UUID, updateUserDto: UpdateUserDto) {
@@ -70,7 +88,7 @@ export class UserService {
       });
     }
 
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       omit: {
         password: true,
       },
@@ -82,9 +100,28 @@ export class UserService {
         password: updateUserDto.newPassword,
       },
     });
+
+    return {
+      ...updatedUser,
+      updatedAt: +new Date(updatedUser.updatedAt),
+      createdAt: +new Date(updatedUser.createdAt),
+    };
   }
 
   async remove(id: UUID) {
+    const findedUser = await this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!findedUser) {
+      throw new NotFoundException('User not found', {
+        cause: new Error(),
+        description: 'User not found',
+      });
+    }
+
     return this.prisma.user.delete({
       where: {
         id: id,

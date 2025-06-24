@@ -6,15 +6,17 @@ import {
 } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { TrackEntity } from './entities/track.entity';
+// import { TrackEntity } from './entities/track.entity';
 import { UUID } from 'crypto';
 import { AlbumService } from 'src/modules/album/album.service';
 import { ArtistService } from 'src/modules/artist/artist.service';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TrackService {
   constructor(
+    private prisma: PrismaService,
     @Inject(forwardRef(() => FavoritesService))
     private readonly favoriteService: FavoritesService,
     @Inject(forwardRef(() => AlbumService))
@@ -23,33 +25,26 @@ export class TrackService {
     private readonly artistService: ArtistService,
   ) {}
 
-  private readonly tracks: TrackEntity[] = [
-    new TrackEntity({
-      id: crypto.randomUUID(),
-      name: 'Track',
-      artistId: crypto.randomUUID(),
-      albumId: crypto.randomUUID(),
-      duration: 100,
-    }),
-  ];
+  // private readonly tracks: TrackEntity[] = [
+  //   new TrackEntity({
+  //     id: crypto.randomUUID(),
+  //     name: 'Track',
+  //     artistId: crypto.randomUUID(),
+  //     albumId: crypto.randomUUID(),
+  //     duration: 100,
+  //   }),
+  // ];
 
   create(createTrackDto: CreateTrackDto) {
-    const newTruck = new TrackEntity({
-      ...createTrackDto,
-      id: crypto.randomUUID(),
-    });
-
-    this.tracks.push(newTruck);
-
-    return newTruck;
+    return this.prisma.track.create({ data: createTrackDto });
   }
 
   findAll() {
-    return this.tracks;
+    return this.prisma.track.findMany();
   }
 
-  findOne(id: UUID) {
-    const findedTrack = this.tracks.find((track) => track.id === id);
+  async findOne(id: UUID) {
+    const findedTrack = await this.prisma.track.findUnique({ where: { id } });
 
     if (!findedTrack) {
       throw new NotFoundException('Track not found', {
@@ -61,46 +56,34 @@ export class TrackService {
     return findedTrack;
   }
 
-  update(id: UUID, updateTrackDto: UpdateTrackDto) {
-    const findedTrack = this.findOne(id);
+  async update(id: UUID, updateTrackDto: UpdateTrackDto) {
+    const findedTrack = await this.prisma.track.findUnique({ where: { id } });
 
-    Object.keys(updateTrackDto).forEach(
-      (keyTrack) => (findedTrack[keyTrack] = updateTrackDto[keyTrack]),
-    );
+    if (!findedTrack) {
+      throw new NotFoundException('Track not found', {
+        cause: new Error(),
+        description: 'Track not found',
+      });
+    }
 
-    return findedTrack;
-  }
-
-  setNullArtist(artistId: UUID) {
-    this.tracks.forEach((track) => {
-      if (track.artistId !== artistId) {
-        return;
-      }
-
-      track.artistId = null;
+    return this.prisma.track.update({
+      where: { id },
+      data: { ...updateTrackDto },
     });
   }
 
-  setNullAlbum(albumId: UUID) {
-    this.tracks.forEach((track) => {
-      if (track.albumId !== albumId) {
-        return;
-      }
+  async remove(id: UUID) {
+    const findedTrack = await this.prisma.track.findUnique({ where: { id } });
 
-      track.albumId = null;
-    });
-  }
+    if (!findedTrack) {
+      throw new NotFoundException('Track not found', {
+        cause: new Error(),
+        description: 'Track not found',
+      });
+    }
 
-  remove(id: UUID) {
-    const findedTrack = this.findOne(id);
+    // await this.favoriteService.cascadeDelete(id, 'track');
 
-    const deletedElement = this.tracks.splice(
-      this.tracks.findIndex((album) => album.id === findedTrack.id),
-      1,
-    );
-
-    this.favoriteService.cascadeDelete(id, 'track');
-
-    return deletedElement;
+    return this.prisma.track.delete({ where: { id } });
   }
 }

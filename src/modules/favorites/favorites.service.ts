@@ -1,3 +1,4 @@
+import { artistsRoutes } from './../../../test/endpoints';
 import {
   forwardRef,
   Inject,
@@ -11,51 +12,108 @@ import { FavoriteEntity } from './entities/favorite.entity';
 import { ArtistService } from 'src/modules/artist/artist.service';
 import { UUID } from 'crypto';
 import { IAlbum, IArtist, ITrack } from 'src/shared/types/entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FavoritesService {
   constructor(
+    private prisma: PrismaService,
     @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
     @Inject(forwardRef(() => AlbumService))
     private readonly albumService: AlbumService,
     @Inject(forwardRef(() => ArtistService))
     private readonly artistService: ArtistService,
-  ) {}
-
-  private readonly favorites: FavoriteEntity = {
-    artists: [],
-    albums: [],
-    tracks: [],
-  };
-
-  findAll() {
-    return this.favorites;
+  ) {
+    this.prisma.favorite.create({
+      data: {
+        type: 'Track',
+      },
+    });
+    this.prisma.favorite.create({
+      data: {
+        type: 'Album',
+      },
+    });
+    this.prisma.favorite.create({
+      data: {
+        type: 'Artist',
+      },
+    });
   }
 
-  addTrack(id: UUID) {
-    let findedTrack: undefined | ITrack;
+  async findAll() {
+    const all = await this.prisma.favorite.findMany({
+      include: {
+        track: true,
+        album: true,
+        artist: true,
+      },
+    });
+    const tracks = [];
+    const albums = [];
+    const artists = [];
 
+    all.forEach((entity) => {
+      switch (entity.type) {
+        case 'Album': {
+          albums.push(entity.album);
+          break;
+        }
+        case 'Artist': {
+          artists.push(entity.artist);
+          break;
+        }
+        case 'Track': {
+          tracks.push(entity.track);
+          break;
+        }
+        default: {
+          console.log('Unknown entity ' + entity);
+        }
+      }
+    });
+
+    return { albums, artists, tracks };
+  }
+
+  async addTrack(id: UUID) {
     try {
-      findedTrack = this.trackService.findOne(id);
+      const isChecked = await this.checkEntity(id, 'track');
+
+      if (!isChecked) {
+        return 'The track is already in favorites';
+      }
+
+      await this.prisma.favorite.create({
+        data: {
+          type: 'Track',
+          track: {
+            connect: { id },
+          },
+        },
+      });
+
+      return 'Track added in favorites';
     } catch (error) {
       if (error.status === 404) {
-        throw new UnprocessableEntityException('Something bad happened', {
+        throw new UnprocessableEntityException('Track not found', {
           cause: new Error(),
-          description: 'Some error description',
+          description: 'Track not found',
         });
       }
 
       throw new Error(error);
     }
-
-    this.favorites.tracks.push(findedTrack);
-
-    return 'Track added in favorites';
   }
 
-  deleteTrack(id: UUID) {
-    const findedTrack = this.favorites.tracks.find((track) => track.id === id);
+  async deleteTrack(id: UUID) {
+    const findedTrack = await this.prisma.favorite.findFirst({
+      where: {
+        trackId: id,
+        type: 'Track',
+      },
+    });
 
     if (!findedTrack) {
       throw new NotFoundException('Track not found in favorites', {
@@ -64,35 +122,46 @@ export class FavoritesService {
       });
     }
 
-    return this.favorites.tracks.splice(
-      this.favorites.tracks.findIndex((track) => track.id === findedTrack.id),
-      1,
-    );
+    return this.prisma.favorite.delete({ where: { id: findedTrack.id } });
   }
 
   async addAlbum(id: UUID) {
-    let findedAlbum: undefined | IAlbum;
-
     try {
-      findedAlbum = await this.albumService.findOne(id);
+      const isChecked = await this.checkEntity(id, 'album');
+
+      if (!isChecked) {
+        return 'The album is already in favorites';
+      }
+
+      await this.prisma.favorite.create({
+        data: {
+          type: 'Album',
+          album: {
+            connect: { id },
+          },
+        },
+      });
+
+      return 'Album added in favorites';
     } catch (error) {
       if (error.status === 404) {
-        throw new UnprocessableEntityException('Something bad happened', {
+        throw new UnprocessableEntityException('Album not found', {
           cause: new Error(),
-          description: 'Some error description',
+          description: 'Album not found',
         });
       }
 
       throw new Error(error);
     }
-
-    this.favorites.albums.push(findedAlbum);
-
-    return 'Album added in favorites';
   }
 
-  deleteAlbum(id: UUID) {
-    const findedAlbum = this.favorites.albums.find((album) => album.id === id);
+  async deleteAlbum(id: UUID) {
+    const findedAlbum = await this.prisma.favorite.findFirst({
+      where: {
+        albumId: id,
+        type: 'Album',
+      },
+    });
 
     if (!findedAlbum) {
       throw new NotFoundException('Album not found in favorites', {
@@ -101,81 +170,124 @@ export class FavoritesService {
       });
     }
 
-    return this.favorites.albums.splice(
-      this.favorites.albums.findIndex((album) => album.id === findedAlbum.id),
-      1,
-    );
+    return this.prisma.favorite.delete({ where: { id: findedAlbum.id } });
   }
 
   async addArtist(id: UUID) {
-    let findedArtist: undefined | IArtist;
-
     try {
-      findedArtist = await this.artistService.findOne(id);
+      const isChecked = await this.checkEntity(id, 'artist');
+
+      if (!isChecked) {
+        return 'The artist is already in favorites';
+      }
+
+      await this.prisma.favorite.create({
+        data: {
+          type: 'Artist',
+          artist: {
+            connect: { id },
+          },
+        },
+      });
+
+      return 'Artist added in favorites';
     } catch (error) {
       if (error.status === 404) {
-        throw new UnprocessableEntityException('Something bad happened', {
+        throw new UnprocessableEntityException('Album not found', {
           cause: new Error(),
-          description: 'Some error description',
+          description: 'Album not found',
         });
       }
 
       throw new Error(error);
     }
-
-    this.favorites.artists.push(findedArtist);
-
-    return 'Artist added in favorites';
   }
 
-  deleteArtist(id: UUID) {
-    const findedArtist = this.favorites.artists.find(
-      (artist) => artist.id === id,
-    );
+  async deleteArtist(id: UUID) {
+    const findedArtist = await this.prisma.favorite.findFirst({
+      where: {
+        artistId: id,
+        type: 'Artist',
+      },
+    });
 
     if (!findedArtist) {
-      throw new NotFoundException('Album not found in favorites', {
+      throw new NotFoundException('Artist not found in favorites', {
         cause: new Error(),
-        description: 'Album not found in favorites',
+        description: 'Artist not found in favorites',
       });
     }
 
-    return this.favorites.artists.splice(
-      this.favorites.artists.findIndex(
-        (artist) => artist.id === findedArtist.id,
-      ),
-      1,
-    );
+    return this.prisma.favorite.delete({ where: { id: findedArtist.id } });
   }
 
-  cascadeDelete(id: UUID, entity: 'artist' | 'album' | 'track') {
+  async checkEntity(id: UUID, entity: 'artist' | 'album' | 'track') {
+    let findedEntity: undefined | FavoriteEntity;
     switch (entity) {
       case 'album': {
-        this.favorites.albums.splice(
-          this.favorites.albums.findIndex((albums) => albums.id === id),
-          1,
-        );
-        break;
-      }
-
-      case 'artist': {
-        this.favorites.artists.splice(
-          this.favorites.artists.findIndex((artist) => artist.id === id),
-          1,
-        );
+        await this.albumService.findOne(id);
+        findedEntity = await this.prisma.favorite.findFirst({
+          where: {
+            albumId: id,
+            type: 'Album',
+          },
+        });
         break;
       }
       case 'track': {
-        this.favorites.tracks.splice(
-          this.favorites.tracks.findIndex((track) => track.id === id),
-          1,
-        );
+        await this.trackService.findOne(id);
+        findedEntity = await this.prisma.favorite.findFirst({
+          where: {
+            trackId: id,
+            type: 'Track',
+          },
+        });
         break;
       }
-
+      case 'artist': {
+        await this.artistService.findOne(id);
+        findedEntity = await this.prisma.favorite.findFirst({
+          where: {
+            artistId: id,
+            type: 'Artist',
+          },
+        });
+        break;
+      }
       default: {
-        console.log(`Unexpected entity ${entity}`);
+        console.log('Unknown entity ' + entity);
+        throw new UnprocessableEntityException('Unknown entity', {
+          cause: new Error(),
+          description: 'Unknown entity',
+        });
       }
     }
+
+    if (findedEntity) {
+      return false;
+    }
+
+    return true;
   }
+
+  // async cascadeDelete(id: UUID, entity: 'artist' | 'album' | 'track') {
+  //   switch (entity) {
+  //     case 'album': {
+  //       await this.deleteAlbum(id);
+  //       break;
+  //     }
+  //     case 'artist': {
+  //       await this.deleteArtist(id);
+  //       break;
+  //     }
+  //     case 'track': {
+  //       await this.deleteTrack(id);
+  //       break;
+  //     }
+
+  //     default: {
+  //       console.log(`Unexpected entity ${entity}`);
+  //     }
+  //   }
+  // }
 }

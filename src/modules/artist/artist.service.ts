@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { ArtistEntity } from './entities/artist.entity';
+// import { ArtistEntity } from './entities/artist.entity';
 import { UUID } from 'crypto';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { AlbumService } from 'src/modules/album/album.service';
@@ -25,13 +25,13 @@ export class ArtistService {
     private readonly trackService: TrackService,
   ) {}
 
-  private readonly artists: ArtistEntity[] = [
-    new ArtistEntity({
-      id: crypto.randomUUID(),
-      name: 'Artist',
-      grammy: true,
-    }),
-  ];
+  // private readonly artists: ArtistEntity[] = [
+  //   new ArtistEntity({
+  //     id: crypto.randomUUID(),
+  //     name: 'Artist',
+  //     grammy: true,
+  //   }),
+  // ];
 
   async create(ArtistDto: ArtistDto) {
     return this.prisma.artist.create({ data: ArtistDto });
@@ -79,10 +79,10 @@ export class ArtistService {
         description: 'Artist not found',
       });
     }
-    console.log('remove', id);
-    await this.albumService.setNullArtist(id);
-    this.trackService.setNullArtist(id);
-    this.favoriteService.cascadeDelete(id, 'artist');
+
+    // await this.albumService.setNullArtist(id);
+    // await this.trackService.setNullArtist(id);
+    // await this.favoriteService.cascadeDelete(id, 'artist');
 
     return this.prisma.artist.delete({ where: { id } });
   }

@@ -30,7 +30,9 @@ export class IUser {
 }
 
 export class IFavorites {
-  artists: IArtist[];
-  albums: IAlbum[];
-  tracks: ITrack[];
+  id: string;
+  type: 'Album' | 'Artist' | 'Track';
+  artistId: string;
+  albumId: string;
+  trackId: string;
 }
