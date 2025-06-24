@@ -1,39 +1,12 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-// import { TrackEntity } from './entities/track.entity';
 import { UUID } from 'crypto';
-import { AlbumService } from 'src/modules/album/album.service';
-import { ArtistService } from 'src/modules/artist/artist.service';
-import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TrackService {
-  constructor(
-    private prisma: PrismaService,
-    @Inject(forwardRef(() => FavoritesService))
-    private readonly favoriteService: FavoritesService,
-    @Inject(forwardRef(() => AlbumService))
-    private readonly albumService: AlbumService,
-    @Inject(forwardRef(() => ArtistService))
-    private readonly artistService: ArtistService,
-  ) {}
-
-  // private readonly tracks: TrackEntity[] = [
-  //   new TrackEntity({
-  //     id: crypto.randomUUID(),
-  //     name: 'Track',
-  //     artistId: crypto.randomUUID(),
-  //     albumId: crypto.randomUUID(),
-  //     duration: 100,
-  //   }),
-  // ];
+  constructor(private prisma: PrismaService) {}
 
   create(createTrackDto: CreateTrackDto) {
     return this.prisma.track.create({ data: createTrackDto });
@@ -81,8 +54,6 @@ export class TrackService {
         description: 'Track not found',
       });
     }
-
-    // await this.favoriteService.cascadeDelete(id, 'track');
 
     return this.prisma.track.delete({ where: { id } });
   }

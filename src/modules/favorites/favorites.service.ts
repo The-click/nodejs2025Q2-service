@@ -1,4 +1,3 @@
-import { artistsRoutes } from './../../../test/endpoints';
 import {
   forwardRef,
   Inject,
@@ -8,11 +7,11 @@ import {
 } from '@nestjs/common';
 import { TrackService } from 'src/modules/track/track.service';
 import { AlbumService } from 'src/modules/album/album.service';
-import { FavoriteEntity } from './entities/favorite.entity';
+
 import { ArtistService } from 'src/modules/artist/artist.service';
 import { UUID } from 'crypto';
-import { IAlbum, IArtist, ITrack } from 'src/shared/types/entity';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Favorite } from '@prisma/client';
 
 @Injectable()
 export class FavoritesService {
@@ -222,7 +221,7 @@ export class FavoritesService {
   }
 
   async checkEntity(id: UUID, entity: 'artist' | 'album' | 'track') {
-    let findedEntity: undefined | FavoriteEntity;
+    let findedEntity: undefined | Favorite;
     switch (entity) {
       case 'album': {
         await this.albumService.findOne(id);
@@ -269,25 +268,4 @@ export class FavoritesService {
 
     return true;
   }
-
-  // async cascadeDelete(id: UUID, entity: 'artist' | 'album' | 'track') {
-  //   switch (entity) {
-  //     case 'album': {
-  //       await this.deleteAlbum(id);
-  //       break;
-  //     }
-  //     case 'artist': {
-  //       await this.deleteArtist(id);
-  //       break;
-  //     }
-  //     case 'track': {
-  //       await this.deleteTrack(id);
-  //       break;
-  //     }
-
-  //     default: {
-  //       console.log(`Unexpected entity ${entity}`);
-  //     }
-  //   }
-  // }
 }
