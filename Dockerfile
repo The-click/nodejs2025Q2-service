@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:22.14.0
+FROM node:22.14.0-alpine3.21
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
@@ -13,11 +13,5 @@ RUN npm install
 # Copy the rest of the application files
 COPY . .
 
-# Build the NestJS application
-RUN npm run build
-
-# Expose the application port
-EXPOSE 4000
-
 # Command to run the application
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]

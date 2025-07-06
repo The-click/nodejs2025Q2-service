@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma_client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  login     String
+  version   Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  password  String
+}
+
+model Artist {
+  id     String   @id @default(uuid())
+  name   String
+  grammy Boolean? @default(false)
+  Album  Album[]
+  Track  Track[]
+
+  Favorite Favorite[]
+}
+
+model Album {
+  id       String  @id @default(uuid())
+  name     String
+  year     Int
+  artist   Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  artistId String? @map("artist_id")
+  Track    Track[]
+
+  Favorite Favorite[]
+}
+
+model Track {
+  id       String  @id @default(uuid())
+  name     String
+  artist   Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  artistId String? @map("artist_id")
+  album    Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  albumId  String? @map("album_id")
+  duration Int?
+
+  Favorite Favorite[]
+}
+
+model Favorite {
+  id       String       @id @default(uuid())
+  type     TypeFavorite
+  artistId String?      @map("artist_id")
+  artist   Artist?      @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  albumId  String?      @map("album_id")
+  album    Album?       @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  trackId  String?      @map("track_id")
+  track    Track?       @relation(fields: [trackId], references: [id], onDelete: Cascade)
+}
+
+enum TypeFavorite {
+  Album
+  Track
+  Artist
+}

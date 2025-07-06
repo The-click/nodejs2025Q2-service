@@ -1,15 +1,13 @@
-version: '3.7'
 
 services:
   postgres:
     container_name: postgres
     image: postgres:latest
     restart: always
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     networks:
       - prisma-network
     healthcheck:
@@ -24,9 +22,28 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+  app:
+      container_name: server
+      restart: always
+    
+      volumes:
+      - ./src:/app/src
+      develop:
+        watch:
+          - action: rebuild
+            path: ./src    
+      build:    
+        context: .
+      depends_on:
+      - postgres
+      networks:
+      - prisma-network
+      ports: 
+      - "${PORT}:${PORT}" 
 
 networks:
   prisma-network:
+    driver: bridge
 
 volumes:
   postgres_data:

@@ -11,7 +11,7 @@ import { AlbumService } from 'src/modules/album/album.service';
 import { ArtistService } from 'src/modules/artist/artist.service';
 import { UUID } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Favorite } from '@prisma/client';
+import { Favorite } from 'generated/prisma_client';
 
 @Injectable()
 export class FavoritesService {
